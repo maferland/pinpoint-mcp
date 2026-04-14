@@ -118,11 +118,13 @@ export function CanvasLayer({
     for (const ann of annotations) {
       const isSelected = ann.id === selectedId;
 
-      if (ann.box) {
-        const bx = pctToCanvas(ann.box.x, layout.offsetX, layout.drawW);
-        const by = pctToCanvas(ann.box.y, layout.offsetY, layout.drawH);
-        const bw = (ann.box.width / 100) * layout.drawW;
-        const bh = (ann.box.height / 100) * layout.drawH;
+      // Only draw box if user actually dragged (not a click-to-pin)
+      const isRealBox = ann.box && (ann.box.width > CLICK_BOX_SIZE + 1 || ann.box.height > CLICK_BOX_SIZE + 1);
+      if (isRealBox) {
+        const bx = pctToCanvas(ann.box!.x, layout.offsetX, layout.drawW);
+        const by = pctToCanvas(ann.box!.y, layout.offsetY, layout.drawH);
+        const bw = (ann.box!.width / 100) * layout.drawW;
+        const bh = (ann.box!.height / 100) * layout.drawH;
         ctx.strokeStyle = isSelected ? "#2563eb" : "#3b82f6";
         ctx.lineWidth = isSelected ? 2.5 : 1.5;
         ctx.setLineDash([6, 3]);
