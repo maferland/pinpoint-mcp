@@ -39,9 +39,13 @@ fi
 echo -e "  ${DIM}Installing dependencies...${RESET}"
 cd "$INSTALL_DIR" && bun install --silent
 
-# Register MCP
-echo -e "  ${DIM}Registering with Claude Code...${RESET}"
+# Register MCP server
+echo -e "  ${DIM}Registering MCP server...${RESET}"
 claude mcp add pinpoint -- bun "$INSTALL_DIR/src/main.ts" --stdio 2>/dev/null || true
+
+# Install plugin (skill)
+echo -e "  ${DIM}Installing plugin...${RESET}"
+claude plugin add "$INSTALL_DIR" 2>/dev/null || true
 
 echo ""
 echo -e "  ${GREEN}✓${RESET} Pinpoint installed. Restart Claude Code to activate."
