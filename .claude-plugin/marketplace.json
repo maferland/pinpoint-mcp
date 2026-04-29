@@ -7,14 +7,14 @@
     "email": "maferland@users.noreply.github.com"
   },
   "metadata": {
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "pinpoint-mcp",
       "source": "./",
-      "description": "Visual annotation MCP — screenshot anything, annotate regions in the browser, get structured feedback for AI coding agents",
-      "version": "0.1.0",
+      "description": "Visual annotation — screenshot anything, annotate regions in the browser, get structured feedback for AI coding agents",
+      "version": "0.2.0",
       "author": {
         "name": "Marc-Antoine Ferland",
         "email": "maferland@users.noreply.github.com"

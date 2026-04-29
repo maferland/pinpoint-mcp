@@ -32,12 +32,18 @@ type RouteHandler = (
   res: http.ServerResponse
 ) => Promise<void>;
 
+export interface PinpointHttpServer {
+  server: http.Server;
+  waitForFinalize(reviewId: string): Promise<void>;
+}
+
 function json(res: http.ServerResponse, status: number, data: unknown): void {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(data));
 }
 
-function createHttpServer(store: FileReviewStore, port: number): http.Server {
+export function createHttpServer(store: FileReviewStore, port: number): PinpointHttpServer {
+  const finalizeResolvers = new Map<string, () => void>();
   const routes: Record<string, RouteHandler> = {
     "GET /review": async (_id, _req, res) => {
       const html = await fs.promises.readFile(path.join(DIST_DIR, "annotator.html"), "utf-8");
@@ -90,11 +96,22 @@ function createHttpServer(store: FileReviewStore, port: number): http.Server {
         json(res, 400, { error: "Invalid JSON" });
       }
     },
+
+    "POST /api/review/finalize": async (id, _req, res) => {
+      const review = await store.load(id);
+      if (!review) return json(res, 404, { error: "Review not found" });
+      const resolver = finalizeResolvers.get(id);
+      if (resolver) {
+        finalizeResolvers.delete(id);
+        resolver();
+      }
+      json(res, 200, { ok: true });
+    },
   };
 
   const server = http.createServer(async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     if (req.method === "OPTIONS") { res.writeHead(204); res.end(); return; }
 
@@ -105,6 +122,7 @@ function createHttpServer(store: FileReviewStore, port: number): http.Server {
     const reviewId = idMatch[1];
     const suffix = url.pathname.endsWith("/image") ? "/image"
       : url.pathname.endsWith("/annotations") ? "/annotations"
+      : url.pathname.endsWith("/finalize") ? "/finalize"
       : "";
     const routeKey = url.pathname.startsWith("/api/")
       ? `${req.method} /api/review${suffix}`
@@ -119,13 +137,20 @@ function createHttpServer(store: FileReviewStore, port: number): http.Server {
     process.stderr.write(`Pinpoint annotation UI: http://localhost:${port}\n`);
   });
 
-  return server;
+  return {
+    server,
+    waitForFinalize(reviewId) {
+      return new Promise<void>((resolve) => {
+        finalizeResolvers.set(reviewId, resolve);
+      });
+    },
+  };
 }
 
 async function main() {
   const store = new FileReviewStore();
   const httpPort = parseInt(process.env.PINPOINT_PORT ?? "4747", 10);
-  const httpServer = createHttpServer(store, httpPort);
+  const { server: httpServer } = createHttpServer(store, httpPort);
 
   if (process.argv.includes("--stdio")) {
     await createServer(store, httpPort).connect(new StdioServerTransport());
@@ -138,4 +163,6 @@ async function main() {
   process.on("SIGTERM", shutdown);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+if (import.meta.main) {
+  main().catch((e) => { console.error(e); process.exit(1); });
+}

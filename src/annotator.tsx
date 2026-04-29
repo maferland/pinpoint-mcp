@@ -63,9 +63,6 @@ export function AnnotatorApp() {
         pin: { x: box.x, y: box.y },
         box,
         comment: "",
-        intent: "fix",
-        severity: "important",
-        status: "pending",
       };
       const updated = [...annotations, ann];
       setAnnotations(updated);
@@ -132,6 +129,7 @@ export function AnnotatorApp() {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       <Toolbar
+        reviewId={reviewId}
         annotationCount={activeAnnotations.length}
         context={review?.context}
         theme={theme}

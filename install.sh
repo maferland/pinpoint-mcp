@@ -35,19 +35,34 @@ else
   git clone --quiet "$REPO" "$INSTALL_DIR"
 fi
 
-# Install deps
+# Install deps + build
 echo -e "  ${DIM}Installing dependencies...${RESET}"
 cd "$INSTALL_DIR" && bun install --silent
 
-# Register MCP server
+echo -e "  ${DIM}Building...${RESET}"
+bun run build > /dev/null
+
+# Link the pinpoint CLI binary onto PATH (~/.bun/bin/pinpoint)
+echo -e "  ${DIM}Linking pinpoint CLI...${RESET}"
+bun link > /dev/null
+
+# Register local marketplace + install plugin (idempotent)
+echo -e "  ${DIM}Installing plugin...${RESET}"
+claude plugin marketplace add "$INSTALL_DIR" 2>/dev/null || true
+claude plugin install pinpoint-mcp@pinpoint-marketplace 2>/dev/null || true
+
+# Optional MCP server registration (back door for non-interactive scripting)
 echo -e "  ${DIM}Registering MCP server...${RESET}"
 claude mcp add pinpoint -- bun "$INSTALL_DIR/src/main.ts" --stdio 2>/dev/null || true
 
-# Install plugin (skill)
-echo -e "  ${DIM}Installing plugin...${RESET}"
-claude plugin add "$INSTALL_DIR" 2>/dev/null || true
+# PATH sanity check
+if ! command -v pinpoint &>/dev/null; then
+  echo ""
+  echo -e "  ${RED}!${RESET} pinpoint not on PATH. Add ~/.bun/bin to PATH:"
+  echo -e "    ${DIM}export PATH=\"\$HOME/.bun/bin:\$PATH\"${RESET}"
+fi
 
 echo ""
-echo -e "  ${GREEN}✓${RESET} Pinpoint installed. Restart Claude Code to activate."
-echo -e "  ${DIM}Ask Claude: \"Take a screenshot and open it for annotation\"${RESET}"
+echo -e "  ${GREEN}✓${RESET} Pinpoint installed."
+echo -e "  ${DIM}Restart Claude Code, then run: /pinpoint-review /path/to/screenshot.png${RESET}"
 echo ""

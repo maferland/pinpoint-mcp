@@ -26,3 +26,4 @@ rmSync(join(root, "dist", "src"), { recursive: true, force: true });
 run("bunx tsc -p tsconfig.server.json");
 run('bun build src/server.ts --outdir dist --target node');
 run('bun build src/main.ts --outfile dist/index.js --target node --banner "#!/usr/bin/env node"');
+run('bun build src/cli.ts --outfile dist/cli.js --target node --banner "#!/usr/bin/env node"');

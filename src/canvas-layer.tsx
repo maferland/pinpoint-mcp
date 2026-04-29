@@ -207,12 +207,13 @@ export function CanvasLayer({
       if (e.button !== 0) return;
       const hitId = hitTestPin(e.clientX, e.clientY);
       if (hitId) { onSelect(hitId); return; }
-      // Always start drag for new annotation (deselects old one implicitly)
+      // If a popover is open, first click on empty canvas just closes it.
+      if (selectedId) { onSelect(null); return; }
       const rect = containerRef.current!.getBoundingClientRect();
       dragRef.current = { startX: e.clientX - rect.left, startY: e.clientY - rect.top, currentX: e.clientX - rect.left, currentY: e.clientY - rect.top };
       bumpDrag();
     },
-    [hitTestPin, onSelect]
+    [hitTestPin, onSelect, selectedId]
   );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {

@@ -1,0 +1,73 @@
+description: using-pinpoint skill — triggers and behaviors
+
+defaultTest:
+  vars:
+    inject-skills: [pinpoint-mcp:using-pinpoint]
+    env:
+      disableSkills: true
+      noMcp: true
+      tools: [AskUserQuestion]
+      pluginDir: /Users/marc-antoine.ferland/dev/visual
+
+prompts:
+  - "{{prompt}}"
+
+tests:
+  - description: "triggers on visual review request"
+    vars:
+      prompt: "I just changed the login form. Can you review the page and tell me what's wrong?"
+    assert:
+      - type: llm-rubric
+        value: "Response directs the user to run `/pinpoint-review` (or equivalent pinpoint slash command) with a screenshot path, OR offers to capture a screenshot first then route to pinpoint."
+
+  - description: "does not invent a 'type done' handoff"
+    vars:
+      prompt: "Open the screenshot at /tmp/foo.png for annotation."
+    assert:
+      - type: javascript
+        value: "!/(type|say)\\s+['\"]?done['\"]?/i.test(output)"
+      - type: llm-rubric
+        value: "Response references the slash command flow or clicking Done in the UI — does not instruct the user to type 'done' back into chat."
+
+  - description: "reads structured annotation JSON correctly"
+    vars:
+      prompt: |
+        I ran /pinpoint-review and got this back:
+        {
+          "annotations": [
+            { "number": 1, "image": "/tmp/login.png",
+              "pin": { "x": 50, "y": 80 },
+              "box": { "x": 45, "y": 78, "width": 20, "height": 8 },
+              "comment": "Submit button text is truncated on mobile" }
+          ]
+        }
+        What did the user point at?
+    assert:
+      - type: llm-rubric
+        value: "Response identifies the user is pointing at the Submit button area (around 50%, 80% of the image) and describes the issue as text truncation on mobile."
+      - type: llm-rubric
+        value: "Response treats coordinates as percentages (0-100) of the image, not pixels."
+
+  - description: "does not require intent or severity in output"
+    vars:
+      prompt: |
+        Show me an example of what an annotation looks like in pinpoint.
+    assert:
+      - type: javascript
+        value: "!/(\\b(intent|severity)\\b.*(fix|change|question|approve|blocking|important|suggestion))/i.test(output)"
+      - type: llm-rubric
+        value: "Example annotation has a comment + region (pin or box). It does NOT include intent (fix/change/question/approve) or severity (blocking/important/suggestion) fields."
+
+  - description: "infers intent from comment wording, not a field"
+    vars:
+      prompt: |
+        Pinpoint returned three annotations:
+        1. "This entire screen needs a rethink" (region: 0,0 100x100)
+        2. "Spacing between cards looks slightly off" (pin: 50,40)
+        3. "Is this color from the design tokens?" (pin: 20,20)
+        Which is the most urgent and which is a question?
+    assert:
+      - type: llm-rubric
+        value: "Response identifies #1 as the most urgent (full-screen rethink) and #3 as the question."
+      - type: llm-rubric
+        value: "Response classifies severity from comment wording without referencing any 'severity' or 'intent' field — because pinpoint annotations don't have those fields."

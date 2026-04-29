@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PinpointAnnotation, AnnotationIntent, AnnotationSeverity } from "./types.ts";
-
-const INTENTS: AnnotationIntent[] = ["fix", "change", "question", "approve"];
-const SEVERITIES: AnnotationSeverity[] = ["blocking", "important", "suggestion"];
-
-const SEVERITY_STYLE: Record<AnnotationSeverity, string> = {
-  blocking: "bg-red-500/15 text-red-400",
-  important: "bg-amber-500/15 text-amber-400",
-  suggestion: "bg-sky-500/15 text-sky-400",
-};
+import type { PinpointAnnotation } from "./types.ts";
 
 interface PopoverProps {
   annotation: PinpointAnnotation;
@@ -59,9 +50,6 @@ export function Popover({ annotation, x, y, onUpdate, onDelete, onClose }: Popov
       <div className="bg-popover border border-border rounded-lg shadow-xl backdrop-blur-sm overflow-hidden">
         <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
           <span className="text-[11px] font-bold text-primary tabular-nums">#{annotation.number}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium leading-none ${SEVERITY_STYLE[annotation.severity]}`}>
-            {annotation.severity}
-          </span>
           <div className="flex-1" />
           <button
             className="text-[11px] text-muted-foreground hover:text-destructive transition-colors"
@@ -75,45 +63,12 @@ export function Popover({ annotation, x, y, onUpdate, onDelete, onClose }: Popov
             ref={textareaRef}
             className="w-full bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground resize-none outline-none min-h-[48px] leading-relaxed"
             rows={2}
-            placeholder="Describe the issue..."
+            placeholder="Type a note..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
           />
-          <div className="border-t border-border pt-2 mt-1 flex items-center gap-1 flex-wrap">
-            <div className="flex items-center gap-px rounded-md bg-secondary p-0.5">
-              {INTENTS.map((intent) => (
-                <button
-                  key={intent}
-                  className={`text-[10px] px-1.5 py-0.5 rounded transition-all capitalize ${
-                    annotation.intent === intent
-                      ? "bg-surface-active text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => onUpdate({ intent })}
-                >
-                  {intent}
-                </button>
-              ))}
-            </div>
-            <div className="flex-1" />
-            <div className="flex items-center gap-px rounded-md bg-secondary p-0.5">
-              {SEVERITIES.map((sev) => (
-                <button
-                  key={sev}
-                  className={`text-[10px] px-1.5 py-0.5 rounded transition-all capitalize ${
-                    annotation.severity === sev
-                      ? SEVERITY_STYLE[sev]
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => onUpdate({ severity: sev })}
-                >
-                  {sev}
-                </button>
-              ))}
-            </div>
-          </div>
           <p className="text-[9px] text-muted-foreground text-right mt-1 opacity-40">⌘Enter to save · Esc to cancel</p>
         </div>
       </div>
@@ -140,12 +95,9 @@ export function CollapsedPopover({ annotation, x, y, onClick }: CollapsedPopover
         <div className="px-3 py-2">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-[11px] font-bold text-primary tabular-nums">#{annotation.number}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium leading-none ${SEVERITY_STYLE[annotation.severity]}`}>
-              {annotation.severity}
-            </span>
           </div>
           <p className="text-[12px] text-muted-foreground truncate">
-            {annotation.comment || "Click to add comment..."}
+            {annotation.comment || "Click to add a note..."}
           </p>
         </div>
       </div>

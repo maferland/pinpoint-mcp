@@ -157,14 +157,13 @@ export function registerTools(
         };
       }
 
-      const pending = review.annotations.filter((a) => a.status === "pending");
       const summary = review.annotations
         .map((a) => {
           const imgLabel = review.images.length > 1 ? `[img${a.imageIndex + 1}] ` : "";
           const loc = a.box
             ? `box(${a.box.x.toFixed(1)}%, ${a.box.y.toFixed(1)}%, ${a.box.width.toFixed(1)}%x${a.box.height.toFixed(1)}%)`
             : `pin(${a.pin.x.toFixed(1)}%, ${a.pin.y.toFixed(1)}%)`;
-          return `#${a.number} ${imgLabel}[${a.intent}/${a.severity}] ${loc}: ${a.comment}`;
+          return `#${a.number} ${imgLabel}${loc}: ${a.comment}`;
         })
         .join("\n");
 
@@ -175,7 +174,7 @@ export function registerTools(
       return {
         content: [{
           type: "text",
-          text: `Review "${reviewId}"${review.context ? ` — ${review.context}` : ""}\n${review.images.length} image(s):\n${imageList}\n${review.annotations.length} annotations (${pending.length} pending)\n\n${summary}\n\n--- Raw JSON ---\n${JSON.stringify(review.annotations, null, 2)}`,
+          text: `Review "${reviewId}"${review.context ? ` — ${review.context}` : ""}\n${review.images.length} image(s):\n${imageList}\n${review.annotations.length} annotations\n\n${summary}\n\n--- Raw JSON ---\n${JSON.stringify(review.annotations, null, 2)}`,
         }],
       };
     }
@@ -194,37 +193,10 @@ export function registerTools(
       if (reviews.length === 0) {
         return { content: [{ type: "text", text: "No reviews found." }] };
       }
-      const lines = reviews.map((r) => {
-        const pending = r.annotations.filter((a) => a.status === "pending").length;
-        return `${r.id} — ${r.context ?? r.images[0]?.path ?? "no images"} (${r.images.length} img, ${r.annotations.length} annotations, ${pending} pending) ${r.createdAt}`;
-      });
+      const lines = reviews.map((r) =>
+        `${r.id} — ${r.context ?? r.images[0]?.path ?? "no images"} (${r.images.length} img, ${r.annotations.length} annotations) ${r.createdAt}`
+      );
       return { content: [{ type: "text", text: lines.join("\n") }] };
-    }
-  );
-
-  // ── resolve_annotation ─────────────────────────────────────────────
-  server.registerTool(
-    "resolve_annotation",
-    {
-      description: "Mark an annotation as resolved or dismissed.",
-      inputSchema: z.object({
-        reviewId: z.string(),
-        annotationId: z.string(),
-        status: z.enum(["resolved", "dismissed"]).default("resolved"),
-      }),
-    },
-    async ({ reviewId, annotationId, status }): Promise<CallToolResult> => {
-      const review = await store.load(reviewId);
-      if (!review) {
-        return { content: [{ type: "text", text: `Review "${reviewId}" not found.` }], isError: true };
-      }
-      const annotation = review.annotations.find((a) => a.id === annotationId);
-      if (!annotation) {
-        return { content: [{ type: "text", text: `Annotation "${annotationId}" not found.` }], isError: true };
-      }
-      annotation.status = status;
-      await store.save(review);
-      return { content: [{ type: "text", text: `Annotation #${annotation.number} marked as ${status}.` }] };
     }
   );
 }

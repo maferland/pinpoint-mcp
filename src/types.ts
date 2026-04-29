@@ -1,7 +1,3 @@
-export type AnnotationIntent = "fix" | "change" | "question" | "approve";
-export type AnnotationSeverity = "blocking" | "important" | "suggestion";
-export type AnnotationStatus = "pending" | "resolved" | "dismissed";
-
 export interface ImageInfo {
   path: string;
   width: number;
@@ -15,9 +11,6 @@ export interface PinpointAnnotation {
   pin: { x: number; y: number };
   box?: { x: number; y: number; width: number; height: number };
   comment: string;
-  intent: AnnotationIntent;
-  severity: AnnotationSeverity;
-  status: AnnotationStatus;
 }
 
 export interface PinpointReview {

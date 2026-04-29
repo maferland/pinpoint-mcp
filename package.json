@@ -1,12 +1,13 @@
 {
   "name": "pinpoint-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Universal visual annotation MCP server — screenshot anything, annotate regions, get structured feedback for AI coding agents",
   "license": "MIT",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
   "bin": {
+    "pinpoint": "dist/cli.js",
     "pinpoint-mcp": "dist/index.js"
   },
   "files": [

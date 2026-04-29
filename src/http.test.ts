@@ -118,7 +118,7 @@ describe("HTTP API", () => {
   it("PUT /api/review/:id/annotations saves", async () => {
     const ann: PinpointAnnotation = {
       id: "a1", number: 1, imageIndex: 0, pin: { x: 25.5, y: 75.3 },
-      comment: "Button misaligned", intent: "fix", severity: "important", status: "pending",
+      comment: "Button misaligned",
     };
     const res = await fetch(`${baseUrl}/api/review/test-review/annotations`, {
       method: "PUT",
@@ -140,9 +140,9 @@ describe("HTTP API", () => {
   it("handles box + pin annotations", async () => {
     const anns: PinpointAnnotation[] = [
       { id: "a1", number: 1, imageIndex: 0, pin: { x: 50, y: 50 }, box: { x: 40, y: 40, width: 20, height: 20 },
-        comment: "Spacing", intent: "change", severity: "suggestion", status: "pending" },
+        comment: "Spacing" },
       { id: "a2", number: 2, imageIndex: 0, pin: { x: 10, y: 10 },
-        comment: "Color", intent: "fix", severity: "blocking", status: "pending" },
+        comment: "Color" },
     ];
     await fetch(`${baseUrl}/api/review/test-review/annotations`, {
       method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(anns),

@@ -4,3 +4,5 @@ dist/
 .DS_Store
 *.log
 .playwright-mcp/
+.verdict-history.json
+.verdict-runs/

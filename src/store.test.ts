@@ -53,7 +53,7 @@ describe("FileReviewStore", () => {
     await store.save(review);
     review.annotations = [{
       id: "a1", number: 1, imageIndex: 0, pin: { x: 50, y: 50 },
-      comment: "test", intent: "fix", severity: "important", status: "pending",
+      comment: "test",
     }];
     await store.save(review);
     expect((await store.load("abc123"))?.annotations).toHaveLength(1);

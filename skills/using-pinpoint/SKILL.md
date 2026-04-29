@@ -3,9 +3,9 @@ name: using-pinpoint
 description: Use when reviewing UI visually, getting design feedback, or when the user wants to annotate screenshots. Triggers on "review this page", "what's wrong with this UI", "annotate", "visual feedback", screenshot review workflows, or after making UI changes that need verification.
 ---
 
-# Pinpoint — Visual Annotation MCP
+# Pinpoint — Visual Annotation CLI
 
-Pinpoint lets the user annotate screenshots in their browser and sends structured feedback back to you.
+Pinpoint lets the user annotate screenshots in their browser and returns structured feedback for you to act on.
 
 ## When to Use
 
@@ -19,7 +19,7 @@ Pinpoint lets the user annotate screenshots in their browser and sends structure
 
 ### 1. Capture a screenshot
 
-Use whatever screenshot tool is available:
+Use whatever screenshot tool fits the platform:
 
 ```bash
 # Chrome DevTools MCP
@@ -35,65 +35,72 @@ screencapture -x /tmp/screenshot.png
 xcrun simctl io booted screenshot /tmp/screenshot.png
 ```
 
-### 2. Open for annotation
+### 2. Tell the user to run the slash command
 
 ```
-create_review({ images: "/tmp/screenshot.png", context: "Login page after auth changes" })
+/pinpoint-review /tmp/screenshot.png
 ```
 
-This auto-opens the browser. Tell the user:
-> "I've opened the annotation UI in your browser. Click to pin areas, drag to highlight regions, and type your feedback. Come back when you're done."
-
-For multiple screenshots:
-```
-create_review({ images: ["/tmp/before.png", "/tmp/after.png"], context: "Header redesign — before and after" })
-```
-
-### 3. Wait for the user
-
-The user annotates in the browser. **Do not call `get_annotations` until the user says they're done** (e.g., "done", "finished", "go", "check it").
-
-### 4. Read annotations
+Multiple images:
 
 ```
-get_annotations({ reviewId: "abc123" })
+/pinpoint-review /tmp/before.png /tmp/after.png
 ```
 
-Returns structured feedback:
+With context:
+
 ```
-#1 [fix/blocking] box(10.2%, 5.3%, 35.0%x12.5%): Button text is truncated on mobile
-#2 [change/suggestion] pin(60.0%, 80.1%): Footer spacing too tight
+/pinpoint-review /tmp/screenshot.png --context "Login page after auth changes"
+```
+
+The slash command opens the browser, blocks until the user clicks **Done**, and returns the annotations directly into the conversation. You don't poll, wait, or call any tool — the output appears as part of the slash command's body.
+
+### 3. Read the returned JSON and act
+
+Output looks like:
+
+```json
+{
+  "context": "Login page after auth changes",
+  "images": [{ "path": "/tmp/screenshot.png", "width": 1440, "height": 900 }],
+  "annotations": [
+    {
+      "number": 1,
+      "image": "/tmp/screenshot.png",
+      "imageIndex": 0,
+      "pin": { "x": 60.0, "y": 80.1 },
+      "box": { "x": 60.0, "y": 80.1, "width": 12.0, "height": 5.0 },
+      "comment": "Footer spacing too tight"
+    }
+  ]
+}
 ```
 
 Each annotation has:
-- **Number** — order placed
-- **Intent** — fix (bug), change (enhancement), question (unclear), approve (looks good)
-- **Severity** — blocking, important, suggestion
-- **Location** — pin(x%, y%) or box(x%, y%, w%xh%) as percentages of image
-- **Comment** — the user's feedback
+- **number** — order placed
+- **image** — absolute path to the image
+- **pin** + optional **box** — position as percentages (0–100) of image dimensions
+- **comment** — the user's feedback
 
-### 5. Fix and iterate
+Classify intent (bug, change request, question, approval) yourself from the comment text. There's no severity field — judge urgency from wording.
 
-Fix the issues, take a new screenshot, open another review:
+### 4. Fix and iterate
 
-```
-add_image({ reviewId: "abc123", image: "/tmp/after-fix.png" })
-```
+After making fixes, ask the user to re-run `/pinpoint-review` with a fresh screenshot.
 
-Or create a fresh review for a new round.
+## MCP fallback
+
+There's also an MCP server (`pinpoint-mcp`) exposing `create_review`, `add_image`, `get_annotations`, `list_reviews` — useful for non-interactive scripting. The CLI is the recommended path; only reach for MCP if you need to programmatically build a review without user interaction.
 
 ## Tips
 
-- Always provide `context` — it shows in the toolbar and helps the user orient
-- Use `add_image` to build up multi-screenshot reviews incrementally
-- Annotations are per-image — switching images shows only that image's pins
-- The user can toggle dark/light theme in the toolbar
-- Coordinates are percentages (0-100), not pixels — resolution independent
-- `resolve_annotation` marks issues as fixed — useful for tracking progress across rounds
+- Always provide `--context` — it shows in the toolbar and helps the user orient
+- Coordinates are percentages — resolution-independent
+- The user can switch dark/light theme in the toolbar
+- Box-drag covers a region; click drops a pin at one point
 
 ## Do NOT
 
-- Don't call `get_annotations` before the user says they're done
-- Don't guess what the user sees — let them annotate and tell you
-- Don't create reviews without screenshots — always capture first
-- Don't open multiple reviews simultaneously — one at a time
+- Don't tell the user to type "done" — clicking Done in the UI handles the handoff
+- Don't try to call MCP tools mid-review — the CLI blocks the conversation until Done
+- Don't guess what the user sees — let them annotate
