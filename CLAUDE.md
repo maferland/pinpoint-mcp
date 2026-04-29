@@ -1,6 +1,6 @@
 # Pinpoint
 
-Browser annotation UI for visual feedback. Primary surface: `/pinpoint-review` slash command via the `pinpoint` CLI binary. Fallback: MCP server (`pinpoint-mcp`) for non-interactive scripting.
+Browser annotation UI for visual feedback. Primary surface: `/pinpoint-review` slash command via the `pinpoint` CLI binary. Fallback: MCP server (registered as `pinpoint` via `claude mcp add`) for non-interactive scripting.
 
 ## Commands
 

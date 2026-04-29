@@ -90,7 +90,7 @@ After making fixes, ask the user to re-run `/pinpoint-review` with a fresh scree
 
 ## MCP fallback
 
-There's also an MCP server (`pinpoint-mcp`) exposing `create_review`, `add_image`, `get_annotations`, `list_reviews` — useful for non-interactive scripting. The CLI is the recommended path; only reach for MCP if you need to programmatically build a review without user interaction.
+There's also an MCP server (registered as `pinpoint`) exposing `create_review`, `add_image`, `get_annotations`, `list_reviews` — useful for non-interactive scripting. The CLI is the recommended path; only reach for MCP if you need to programmatically build a review without user interaction.
 
 ## Tips
 

@@ -22,19 +22,19 @@ Works with any visual surface: web pages, iOS simulators, macOS apps, Storybook,
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/maferland/pinpoint-mcp/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/maferland/pinpoint/main/install.sh | bash
 ```
 
 <details>
 <summary>Manual install</summary>
 
 ```bash
-git clone https://github.com/maferland/pinpoint-mcp.git ~/.pinpoint-mcp
-cd ~/.pinpoint-mcp && bun install && bun run build
+git clone https://github.com/maferland/pinpoint.git ~/.pinpoint
+cd ~/.pinpoint && bun install && bun run build
 bun link                                                  # exposes `pinpoint` on PATH
-claude plugin marketplace add ~/.pinpoint-mcp             # registers the slash command
-claude plugin install pinpoint-mcp@pinpoint-marketplace
-claude mcp add pinpoint -- bun ~/.pinpoint-mcp/src/main.ts --stdio   # optional, MCP back door
+claude plugin marketplace add ~/.pinpoint             # registers the slash command
+claude plugin install pinpoint@pinpoint-marketplace
+claude mcp add pinpoint -- bun ~/.pinpoint/src/main.ts --stdio   # optional, MCP back door
 ```
 </details>
 

@@ -1,13 +1,13 @@
 {
-  "name": "pinpoint-mcp",
+  "name": "pinpoint",
   "version": "0.2.0",
   "description": "Visual annotation for AI coding agents — screenshot anything, annotate regions, get structured feedback",
   "author": {
     "name": "Marc-Antoine Ferland",
     "email": "maferland@users.noreply.github.com"
   },
-  "keywords": ["visual", "annotation", "screenshot", "review", "mcp", "ui", "design"],
-  "homepage": "https://github.com/maferland/pinpoint-mcp",
-  "repository": "https://github.com/maferland/pinpoint-mcp",
+  "keywords": ["visual", "annotation", "screenshot", "review", "ui", "design"],
+  "homepage": "https://github.com/maferland/pinpoint",
+  "repository": "https://github.com/maferland/pinpoint",
   "license": "MIT"
 }

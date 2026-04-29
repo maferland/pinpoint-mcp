@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="${PINPOINT_DIR:-$HOME/.pinpoint-mcp}"
-REPO="https://github.com/maferland/pinpoint-mcp.git"
+INSTALL_DIR="${PINPOINT_DIR:-$HOME/.pinpoint}"
+REPO="https://github.com/maferland/pinpoint.git"
 
 # Colors
 RED='\033[0;31m'
@@ -49,7 +49,7 @@ bun link > /dev/null
 # Register local marketplace + install plugin (idempotent)
 echo -e "  ${DIM}Installing plugin...${RESET}"
 claude plugin marketplace add "$INSTALL_DIR" 2>/dev/null || true
-claude plugin install pinpoint-mcp@pinpoint-marketplace 2>/dev/null || true
+claude plugin install pinpoint@pinpoint-marketplace 2>/dev/null || true
 
 # Optional MCP server registration (back door for non-interactive scripting)
 echo -e "  ${DIM}Registering MCP server...${RESET}"

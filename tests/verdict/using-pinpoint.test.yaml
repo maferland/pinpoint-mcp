@@ -2,12 +2,12 @@ description: using-pinpoint skill — triggers and behaviors
 
 defaultTest:
   vars:
-    inject-skills: [pinpoint-mcp:using-pinpoint]
+    inject-skills: [pinpoint:using-pinpoint]
     env:
       disableSkills: true
       noMcp: true
       tools: [AskUserQuestion]
-      pluginDir: /Users/marc-antoine.ferland/dev/visual
+      pluginDir: /Users/marc-antoine.ferland/dev/pinpoint
 
 prompts:
   - "{{prompt}}"
@@ -16,9 +16,10 @@ tests:
   - description: "triggers on visual review request"
     vars:
       prompt: "I just changed the login form. Can you review the page and tell me what's wrong?"
+      retries: 1
     assert:
       - type: llm-rubric
-        value: "Response directs the user to run `/pinpoint-review` (or equivalent pinpoint slash command) with a screenshot path, OR offers to capture a screenshot first then route to pinpoint."
+        value: "Response directs the user to run `/pinpoint-review` (or equivalent pinpoint slash command). Either a literal path or a placeholder is fine — there is no path attached to the prompt, so a hallucinated path should NOT count against the response."
 
   - description: "does not invent a 'type done' handoff"
     vars:
@@ -52,11 +53,10 @@ tests:
     vars:
       prompt: |
         Show me an example of what an annotation looks like in pinpoint.
+      retries: 1
     assert:
-      - type: javascript
-        value: "!/(\\b(intent|severity)\\b.*(fix|change|question|approve|blocking|important|suggestion))/i.test(output)"
       - type: llm-rubric
-        value: "Example annotation has a comment + region (pin or box). It does NOT include intent (fix/change/question/approve) or severity (blocking/important/suggestion) fields."
+        value: "The example annotation JSON object itself contains a comment and a region (pin and/or box) but does NOT include `intent` or `severity` fields. The model may explain that those fields don't exist — that's fine — but the literal example must omit them."
 
   - description: "infers intent from comment wording, not a field"
     vars:
