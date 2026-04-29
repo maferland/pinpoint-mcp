@@ -1,4 +1,3 @@
-import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -6,10 +5,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod/v4";
 import type { ReviewStore } from "./store.js";
 import type { ImageInfo } from "./types.js";
-
-function generateId(): string {
-  return crypto.randomUUID().replace(/-/g, "").slice(0, 18);
-}
+import { generateId, openBrowser } from "./util.js";
 
 export async function readImageDimensions(
   imagePath: string
@@ -39,13 +35,6 @@ async function resolveImage(imagePath: string): Promise<ImageInfo | null> {
   }
   const dims = await readImageDimensions(absPath);
   return { path: absPath, ...dims };
-}
-
-function openBrowser(url: string) {
-  const cmd = process.platform === "darwin" ? "open"
-    : process.platform === "win32" ? "start"
-    : "xdg-open";
-  exec(`${cmd} "${url}"`);
 }
 
 export function registerTools(

@@ -6,3 +6,5 @@ dist/
 .playwright-mcp/
 .verdict-history.json
 .verdict-runs/
+test-results/
+playwright-report/

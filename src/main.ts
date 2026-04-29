@@ -10,6 +10,7 @@ import path from "path";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { FileReviewStore } from "./store.js";
 import { createServer } from "./server.js";
+import { REVIEW_ID_RE } from "./util.js";
 import type { PinpointAnnotation } from "./types.js";
 
 const DIST_DIR = import.meta.filename?.endsWith(".ts")
@@ -22,8 +23,6 @@ const MIME_TYPES: Record<string, string> = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
 };
-
-const REVIEW_ID_RE = /^\/(?:api\/)?review\/([a-zA-Z0-9_-]+)/;
 const MAX_BODY = 1024 * 1024;
 
 type RouteHandler = (
@@ -134,7 +133,9 @@ export function createHttpServer(store: FileReviewStore, port: number): Pinpoint
   });
 
   server.listen(port, () => {
-    process.stderr.write(`Pinpoint annotation UI: http://localhost:${port}\n`);
+    const addr = server.address();
+    const boundPort = typeof addr === "object" && addr ? addr.port : port;
+    process.stderr.write(`Pinpoint annotation UI: http://localhost:${boundPort}\n`);
   });
 
   return {

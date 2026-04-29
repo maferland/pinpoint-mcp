@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { finalizeReview } from "./api.ts";
+
+const AUTO_CLOSE_KEY = "pinpoint:autoCloseAfterDone";
+const AUTO_CLOSE_DELAY_MS = 3000;
 
 interface ToolbarProps {
   reviewId: string;
@@ -23,13 +27,30 @@ const MoonIcon = () => (
 
 export function Toolbar({ reviewId, annotationCount, context, theme, onThemeToggle }: ToolbarProps) {
   const [doneState, setDoneState] = useState<"idle" | "sending" | "sent">("idle");
+  const [autoClose, setAutoClose] = useState<boolean>(() => {
+    try { return localStorage.getItem(AUTO_CLOSE_KEY) === "1"; } catch { return false; }
+  });
+  const [countdown, setCountdown] = useState<number>(0);
+
+  useEffect(() => {
+    try { localStorage.setItem(AUTO_CLOSE_KEY, autoClose ? "1" : "0"); } catch {}
+  }, [autoClose]);
+
+  useEffect(() => {
+    if (doneState !== "sent" || !autoClose) return;
+    setCountdown(Math.round(AUTO_CLOSE_DELAY_MS / 1000));
+    const tick = setInterval(() => setCountdown((n) => (n > 0 ? n - 1 : 0)), 1000);
+    const close = setTimeout(() => window.close(), AUTO_CLOSE_DELAY_MS);
+    return () => { clearInterval(tick); clearTimeout(close); };
+  }, [doneState, autoClose]);
 
   const sendDone = async () => {
     setDoneState("sending");
     try {
-      await fetch(`${window.location.origin}/api/review/${reviewId}/finalize`, { method: "POST" });
+      await finalizeReview(reviewId);
       setDoneState("sent");
-    } catch {
+    } catch (err) {
+      console.error("Finalize failed:", err);
       setDoneState("idle");
     }
   };
@@ -53,6 +74,19 @@ export function Toolbar({ reviewId, annotationCount, context, theme, onThemeTogg
         {annotationCount} pin{annotationCount !== 1 ? "s" : ""}
       </span>
       <div className="w-px h-5 bg-border" />
+      <label
+        className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer whitespace-nowrap select-none"
+        title="When checked, this tab tries to close itself 3s after Done"
+      >
+        <input
+          type="checkbox"
+          className="accent-primary cursor-pointer"
+          checked={autoClose}
+          onChange={(e) => setAutoClose(e.target.checked)}
+        />
+        Auto-close
+      </label>
+      <div className="w-px h-5 bg-border" />
       <button
         className={`text-[12px] px-2.5 h-7 rounded-md font-medium transition-colors whitespace-nowrap ${
           doneState === "sent"
@@ -65,7 +99,9 @@ export function Toolbar({ reviewId, annotationCount, context, theme, onThemeTogg
       >
         {doneState === "idle" && "Done"}
         {doneState === "sending" && "Sending…"}
-        {doneState === "sent" && "Sent — you can close this tab"}
+        {doneState === "sent" && (autoClose && countdown > 0
+          ? `Sent — closing in ${countdown}s`
+          : "Sent — you can close this tab")}
       </button>
       <button
         className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

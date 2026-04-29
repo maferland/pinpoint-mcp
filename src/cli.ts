@@ -5,25 +5,14 @@
  * Usage: pinpoint review <image>... [--context "..."] [--port N]
  */
 
-import { exec } from "child_process";
 import path from "path";
 import { FileReviewStore } from "./store.js";
 import { createHttpServer } from "./main.js";
 import { readImageDimensions } from "./server.js";
+import { generateId, openBrowser } from "./util.js";
 import type { ImageInfo, PinpointReview } from "./types.js";
 
 const FINALIZE_TIMEOUT_MS = 96 * 60 * 60 * 1000;
-
-function generateId(): string {
-  return crypto.randomUUID().replace(/-/g, "").slice(0, 18);
-}
-
-function openBrowser(url: string): void {
-  const cmd = process.platform === "darwin" ? "open"
-    : process.platform === "win32" ? "start"
-    : "xdg-open";
-  exec(`${cmd} "${url}"`);
-}
 
 interface ParsedArgs {
   command: string;
@@ -121,7 +110,12 @@ async function reviewCommand(args: ParsedArgs): Promise<void> {
   };
 
   process.stdout.write(JSON.stringify(output, null, 2) + "\n");
+  // Force-close keep-alive connections from the browser so server.close fires
+  // immediately. Without this, exit waits up to ~5s (default keepAliveTimeout).
+  server.closeAllConnections?.();
   server.close(() => process.exit(0));
+  // Belt and suspenders: hard exit after a short grace period.
+  setTimeout(() => process.exit(0), 250).unref();
 }
 
 async function main(): Promise<void> {

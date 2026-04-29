@@ -2,15 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PinpointAnnotation, PinpointReview } from "./types.ts";
 import { Toolbar } from "./toolbar.tsx";
 import { CanvasLayer } from "./canvas-layer.tsx";
-
-const REVIEW_ID_RE = /\/review\/([a-zA-Z0-9_-]+)/;
-
-function apiUrl(path: string): string {
-  return `${window.location.origin}${path}`;
-}
+import { getReview, imageUrl as buildImageUrl, reviewIdFromPath, saveAnnotations } from "./api.ts";
 
 export function AnnotatorApp() {
-  const reviewId = window.location.pathname.match(REVIEW_ID_RE)?.[1] ?? null;
+  const reviewId = reviewIdFromPath(window.location.pathname);
   const [review, setReview] = useState<PinpointReview | null>(null);
   const [annotations, setAnnotations] = useState<PinpointAnnotation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -24,17 +19,16 @@ export function AnnotatorApp() {
 
   useEffect(() => {
     if (!reviewId) return;
-    fetch(apiUrl(`/api/review/${reviewId}`))
-      .then((r) => r.json())
-      .then((data: PinpointReview) => {
+    getReview(reviewId)
+      .then((data) => {
         setReview(data);
         setAnnotations(data.annotations);
       })
       .catch((err) => console.error("Failed to load review:", err));
   }, [reviewId]);
 
-  const imageUrl = review && review.images.length > 0
-    ? apiUrl(`/api/review/${reviewId}/image?index=${activeImageIndex}`)
+  const currentImageUrl = review && review.images.length > 0 && reviewId
+    ? buildImageUrl(reviewId, activeImageIndex)
     : "";
 
   const activeAnnotations = annotations.filter((a) => a.imageIndex === activeImageIndex);
@@ -44,11 +38,9 @@ export function AnnotatorApp() {
       if (!reviewId) return;
       clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
-        fetch(apiUrl(`/api/review/${reviewId}/annotations`), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(anns),
-        }).catch(() => {});
+        saveAnnotations(reviewId, anns).catch((err) =>
+          console.error("Failed to save annotations:", err)
+        );
       }, 300);
     },
     [reviewId]
@@ -153,7 +145,7 @@ export function AnnotatorApp() {
                 onClick={() => { setActiveImageIndex(i); setSelectedId(null); }}
               >
                 <img
-                  src={apiUrl(`/api/review/${reviewId}/image?index=${i}`)}
+                  src={buildImageUrl(reviewId, i)}
                   alt={`Image ${i + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -175,7 +167,7 @@ export function AnnotatorApp() {
       )}
 
       <CanvasLayer
-        imageDataUrl={imageUrl}
+        imageDataUrl={currentImageUrl}
         annotations={activeAnnotations}
         selectedId={selectedId}
         onBoxPlace={(x, y, w, h) => addAnnotation({ x, y, width: w, height: h })}

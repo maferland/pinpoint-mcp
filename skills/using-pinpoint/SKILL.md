@@ -35,7 +35,9 @@ screencapture -x /tmp/screenshot.png
 xcrun simctl io booted screenshot /tmp/screenshot.png
 ```
 
-### 2. Tell the user to run the slash command
+### 2. Emit the slash command — no preamble
+
+Output ONLY the slash command line. No "Run this to...", no "click Done in the browser", no explanation. The user knows the flow.
 
 ```
 /pinpoint-review /tmp/screenshot.png
@@ -47,10 +49,10 @@ Multiple images:
 /pinpoint-review /tmp/before.png /tmp/after.png
 ```
 
-With context:
+With context (always include — describes what the user is reviewing and what you suspect):
 
 ```
-/pinpoint-review /tmp/screenshot.png --context "Login page after auth changes"
+/pinpoint-review /tmp/screenshot.png --context "Login page after auth changes — suspect spacing bug under .form-row"
 ```
 
 The slash command opens the browser, blocks until the user clicks **Done**, and returns the annotations directly into the conversation. You don't poll, wait, or call any tool — the output appears as part of the slash command's body.
@@ -101,6 +103,7 @@ There's also an MCP server (registered as `pinpoint`) exposing `create_review`, 
 
 ## Do NOT
 
+- Don't add preamble around the slash command ("Run this to annotate", "then click Done in the browser") — emit the command bare
 - Don't tell the user to type "done" — clicking Done in the UI handles the handoff
 - Don't try to call MCP tools mid-review — the CLI blocks the conversation until Done
 - Don't guess what the user sees — let them annotate
