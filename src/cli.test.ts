@@ -1,10 +1,21 @@
-import { spawn } from "child_process";
+import { spawn, spawnSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 
 const CLI_PATH = path.join(import.meta.dirname!, "..", "dist", "cli.js");
+
+beforeAll(() => {
+  if (fs.existsSync(CLI_PATH)) return;
+  // Self-build if dist is missing — keeps `bun test` working without a
+  // separate `bun run build` step (and avoids a CI ordering footgun).
+  const result = spawnSync("bun", ["run", "build"], {
+    cwd: path.join(import.meta.dirname!, ".."),
+    stdio: "inherit",
+  });
+  if (result.status !== 0) throw new Error("build failed");
+});
 
 const TEST_PNG = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
