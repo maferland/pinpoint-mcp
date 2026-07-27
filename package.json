@@ -1,6 +1,6 @@
 {
   "name": "pinpoint",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "type": "module",
   "description": "Visual annotation for AI coding agents — screenshot anything, annotate regions, get structured feedback",
   "license": "MIT",

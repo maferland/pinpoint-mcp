@@ -1,3 +1,7 @@
+## [v0.14.0]
+
+- **Upgrade in one command: `pinpoint update`.** No more re-running the install script by hand to get the latest — it pulls, rebuilds, and relinks in place.
+
 ## [v0.13.0]
 
 - **Pinpoint now plugs in through the CLI and the `/pinpoint:review` slash command; the MCP server is gone.** If you had it wired in as an MCP server, point your setup at the `pinpoint` binary or the slash command instead.
