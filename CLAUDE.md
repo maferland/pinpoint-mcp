@@ -31,6 +31,9 @@ pinpoint share <reviewId> [--ttl DAYS] [--server URL]
 # Open a share link the same way you'd open a bundle file
 pinpoint open <share-link> [--mode replace|append|new] [--port N]
 
+# Update in place — runs the installed checkout's install.sh (pull + rebuild + relink)
+pinpoint update
+
 # HTTP-only mode (legacy / dev)
 bun src/main.ts                     # starts on :4747
 PINPOINT_PORT=8080 bun src/main.ts  # custom port
@@ -64,7 +67,7 @@ PINPOINT_PORT=8080 bun src/main.ts  # custom port
 ## Releasing
 
 Two delivery paths:
-- `install.sh` does `git pull` + rebuild from `main` — fresh installs and manual re-runs get latest immediately, no tag required.
+- `install.sh` does `git pull` + rebuild from `main` — fresh installs and manual re-runs get latest immediately, no tag required. Existing installs run it via `pinpoint update`, and the in-app banner copies that command.
 - In-app update banner (`src/use-update-check.ts`) polls the GitHub Releases API and only fires on a new `vX.Y.Z` tag. Without a tag, existing users on the prior version won't be prompted.
 
 ### Writing CHANGELOG entries

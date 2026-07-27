@@ -68,6 +68,9 @@ Requires [Bun](https://bun.sh) 1.2+.
 Once installed, `pinpoint demo` opens a local sandbox session with starter pins
 on a real screenshot. No target image needed to try the real CLI loop.
 
+Update in place any time with `pinpoint update` — it pulls the latest, rebuilds,
+and relinks.
+
 ## Use it with your agent
 
 ### Claude Code: slash command

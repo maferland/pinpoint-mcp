@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getPreferences, savePreferences } from "./api.ts";
 import { useUpdateCheck } from "./use-update-check.ts";
 
-const INSTALL_COMMAND = "curl -fsSL https://raw.githubusercontent.com/maferland/pinpoint/main/install.sh | bash";
+const UPDATE_COMMAND = "pinpoint update";
 
 export function UpdateBanner() {
   const info = useUpdateCheck();
@@ -29,7 +29,7 @@ export function UpdateBanner() {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(INSTALL_COMMAND);
+      await navigator.clipboard.writeText(UPDATE_COMMAND);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -72,9 +72,9 @@ export function UpdateBanner() {
         <button
           onClick={copy}
           className="bg-secondary hover:bg-secondary/80 text-secondary-foreground text-[11px] font-mono rounded-md px-2.5 py-1.5 text-left transition-colors flex items-center justify-between gap-2 group"
-          title="Copy install command"
+          title="Copy update command"
         >
-          <span className="truncate">{INSTALL_COMMAND}</span>
+          <span className="truncate">{UPDATE_COMMAND}</span>
           <span className="text-muted-foreground text-[10px] shrink-0 group-hover:text-foreground transition-colors">
             {copied ? "copied" : "copy"}
           </span>

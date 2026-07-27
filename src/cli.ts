@@ -13,6 +13,7 @@
 import fs from "fs";
 import path from "path";
 import readline from "readline";
+import { spawnSync } from "child_process";
 import { FileReviewStore, type ReviewStore } from "./store.js";
 import { createHttpServer } from "./main.js";
 import { readImageDimensions } from "./image-sniff.js";
@@ -432,6 +433,22 @@ async function demoCommand(args: ParsedArgs): Promise<void> {
   await openCommand({ ...args, positional: [bundlePath], mode: "new" });
 }
 
+async function updateCommand(): Promise<void> {
+  // The binary lives at <root>/dist/cli.js; the repo's install.sh is the proven
+  // pull → build → link → plugin updater, so reuse it rather than reimplement.
+  const root = path.resolve(import.meta.dirname!, "..");
+  const installScript = path.join(root, "install.sh");
+  if (!fs.existsSync(path.join(root, ".git")) || !fs.existsSync(installScript)) {
+    process.stderr.write(
+      "pinpoint update needs the git checkout that install.sh creates.\n" +
+      "Reinstall: curl -fsSL https://raw.githubusercontent.com/maferland/pinpoint/main/install.sh | bash\n"
+    );
+    process.exit(1);
+  }
+  const res = spawnSync("bash", [installScript], { stdio: "inherit" });
+  process.exit(res.status ?? 1);
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   if (args.command === "review") return reviewCommand(args);
@@ -439,6 +456,7 @@ async function main(): Promise<void> {
   if (args.command === "share" && SHARE_ENABLED) return shareCommand(args);
   if (args.command === "open") return openCommand(args);
   if (args.command === "demo") return demoCommand(args);
+  if (args.command === "update") return updateCommand();
 
   process.stderr.write(
     "pinpoint — visual annotation CLI\n\n" +
@@ -447,7 +465,8 @@ async function main(): Promise<void> {
     "  pinpoint export <reviewId> [--output FILE|-]\n" +
     (SHARE_ENABLED ? "  pinpoint share <reviewId> [--ttl DAYS] [--server URL]\n" : "") +
     `  pinpoint open <bundle.pinpoint.zip${SHARE_ENABLED ? "|share-link" : ""}> [--mode replace|append|new] [--port N]\n` +
-    "  pinpoint demo [--port N]\n"
+    "  pinpoint demo [--port N]\n" +
+    "  pinpoint update\n"
   );
   process.exit(args.command ? 2 : 0);
 }

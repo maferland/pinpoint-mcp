@@ -1,8 +1,9 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { spawnSync } from "child_process";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
-import { ensureCliBuilt, spawnCli, TEST_PNG, waitForReady } from "./cli-test-harness.js";
+import { CLI_PATH, ensureCliBuilt, spawnCli, TEST_PNG, waitForReady } from "./cli-test-harness.js";
 
 beforeAll(ensureCliBuilt);
 
@@ -267,5 +268,22 @@ describe("pinpoint review cli", () => {
     const code = await cli.exited;
     expect(code).toBe(1);
     expect(cli.stderr).toMatch(/not found|unreadable/i);
+  });
+});
+
+describe("pinpoint update cli", () => {
+  // Run the built binary from a copy that has no .git/install.sh so the guard
+  // fires and the real installer never runs against the user's ~/.pinpoint.
+  it("refuses to update outside the install checkout", () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "pinpoint-update-test-"));
+    try {
+      fs.mkdirSync(path.join(tmp, "dist"));
+      fs.copyFileSync(CLI_PATH, path.join(tmp, "dist", "cli.js"));
+      const res = spawnSync("node", [path.join(tmp, "dist", "cli.js"), "update"], { encoding: "utf8" });
+      expect(res.status).toBe(1);
+      expect(res.stderr).toMatch(/needs the git checkout/i);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });
