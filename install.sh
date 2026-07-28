@@ -34,7 +34,8 @@ fi
 #   3. ~/.pinpoint does not exist → fresh clone
 if [ -d "$INSTALL_DIR/.git" ]; then
   echo -e "  ${DIM}Updating ${INSTALL_DIR}...${RESET}"
-  git -C "$INSTALL_DIR" pull --quiet
+  git -C "$INSTALL_DIR" fetch --quiet
+  git -C "$INSTALL_DIR" reset --quiet --hard origin/main
 elif [ -d "$INSTALL_DIR" ]; then
   BACKUP="${INSTALL_DIR}.bak.$(date +%Y%m%d%H%M%S)"
   echo -e "  ${DIM}Found non-git directory at ${INSTALL_DIR}; moving to ${BACKUP} and re-cloning...${RESET}"
